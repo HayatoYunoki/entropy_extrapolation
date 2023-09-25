@@ -1,32 +1,28 @@
 import numpy as np
 import math
+from scipy.optimize import minimize
 
 def main():
     q = 5
     alpha = 0.25
-    c = make_tensor(q)
-    S = tensor_svd(c, q) #Sは特異値ベクトルを格納するリスト
-    print(S)
-    H = calc_entropy(alpha, q, S)
+    init_guess = 25.0
+    result = minimize(calc_entropy, init_guess, args = (alpha, q))
+    print(result.x)
+    print(result.fun)
 
-def make_tensor(q):
+def make_tensor(q, init_guess):
     tensor_shape = []
     test_data = []
     for i in range(q):
         tensor_shape.append(2)
     for i in range(2**q):
         test_data.append(i+1)
-    print(test_data)
-    test_data[31] = 66
+    test_data[2**q-1] = init_guess
     c = np.full(2**q, 1.0).reshape(tensor_shape)
     for i in range(2**q):
         binary_string = bin(i)[2:].zfill(q) ##0bを除去
         binary_tuple = tuple(int(bit) for bit in binary_string)
-        # print(binary_tuple)
         c[binary_tuple] = test_data[i]
-        # print(binary_tuple)
-        # print(test_data[i])
-    # print(c[0, 1, 1])
     return c
 
 def tensor_svd(c, q):
@@ -38,7 +34,7 @@ def tensor_svd(c, q):
     S = []
     for i in range(1, q):
         new_c_matrix = c_matrix.reshape(2**i, -1)
-        print(c_matrix)
+        # print(new_c_matrix)
         A1, S12, A2 = np.linalg.svd(new_c_matrix)
         S.append(S12)
         # S12 = (S12 * np.eye(2))
@@ -47,7 +43,9 @@ def tensor_svd(c, q):
         # print(A1@S12@A2)
     return S
 
-def calc_entropy(alpha, q, S):
+def calc_entropy(init_guess, alpha, q):
+    c = make_tensor(q, init_guess)
+    S = tensor_svd(c, q) #Sは特異値ベクトルを格納するリスト
     H = 0.0
     for j in range(q-1):
         #Sを規格化
@@ -57,13 +55,8 @@ def calc_entropy(alpha, q, S):
         sum = 0.0
         for i in range(2):
             sum += ((S[j][i]**2)/norm_S_2)**alpha
-        # print("sum")
-        # print(sum)
         H += math.log(sum)/(1-alpha)
-
-    print(H)
     return H
-
 
 if __name__ == "__main__":
     main()
