@@ -3,13 +3,16 @@ import math
 from scipy.optimize import minimize
 
 def main():
-    q = 4
+    q = 7
     alpha = 0.25
     init_guess = 0.1
     file_path = "sin.txt"
-    N = 4 #何個の点を予測するか
+    outfile_path = "sin_out2.txt"
+    N = 500 #何個の点を予測するか
     pre_result = 0
     test_data = [0]*(2**q)
+    f = open(outfile_path, 'w')
+    out_text = ""
     for i in range(N):
         result = minimize(calc_entropy, init_guess, args = (alpha, q, file_path, test_data, i, pre_result))
         print(result.x)
@@ -19,6 +22,9 @@ def main():
         pre_result = result.x[0]
         for i in range(len(test_data)-1):
             test_data[i] = test_data[i+1]
+        out_text += str(result.x[0]) + "\n"
+    f.write(out_text)
+    f.close
 
 def make_tensor(q, test_data):
     tensor_shape = []
