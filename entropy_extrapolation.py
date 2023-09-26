@@ -3,21 +3,27 @@ import math
 from scipy.optimize import minimize
 
 def main():
-    q = 5
+    q = 4
     alpha = 0.25
-    init_guess = 25.0
-    result = minimize(calc_entropy, init_guess, args = (alpha, q))
-    print(result.x)
-    print(result.fun)
+    init_guess = 0.1
+    file_path = "sin.txt"
+    N = 4 #何個の点を予測するか
+    pre_result = 0
+    test_data = [0]*(2**q)
+    for i in range(N):
+        result = minimize(calc_entropy, init_guess, args = (alpha, q, file_path, test_data, i, pre_result))
+        print(result.x)
+        print(result.success)
+        print(result.message)
+        print(result.fun)
+        pre_result = result.x[0]
+        for i in range(len(test_data)-1):
+            test_data[i] = test_data[i+1]
 
-def make_tensor(q, init_guess):
+def make_tensor(q, test_data):
     tensor_shape = []
-    test_data = []
     for i in range(q):
         tensor_shape.append(2)
-    for i in range(2**q):
-        test_data.append(i+1)
-    test_data[2**q-1] = init_guess
     c = np.full(2**q, 1.0).reshape(tensor_shape)
     for i in range(2**q):
         binary_string = bin(i)[2:].zfill(q) ##0bを除去
@@ -27,24 +33,27 @@ def make_tensor(q, init_guess):
 
 def tensor_svd(c, q):
     c_matrix = c.reshape(2, -1)
-    # U = np.array([[0.376168, -0.92655],[0.92655, 0.376168]])
-    # sigma = np.array([[14.2274, 0],[0, 1.25733]])
-    # Vt = np.array([[0.352062, 0.443626, 0.53519, 0.626754],[0.758981, 0.321242, -0.116498, -0.554238]])
-    # print(U@sigma@Vt)
     S = []
     for i in range(1, q):
         new_c_matrix = c_matrix.reshape(2**i, -1)
-        # print(new_c_matrix)
         A1, S12, A2 = np.linalg.svd(new_c_matrix)
         S.append(S12)
-        # S12 = (S12 * np.eye(2))
-        # A2 = A2[:2]
-        # c_matrix = A2
-        # print(A1@S12@A2)
     return S
 
-def calc_entropy(init_guess, alpha, q):
-    c = make_tensor(q, init_guess)
+def read_data(init_guess, file_path, q, start_line, test_data, pre_result):
+    if start_line == 0:
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+        for i in range(start_line, min(2**q+start_line, len(lines))):
+            test_data[i-start_line] = float(lines[i].strip())  # 行末の改行文字を取り除いてリストに追加
+    test_data[-1] = init_guess[0]
+    # print(test_data)
+    return test_data
+
+def calc_entropy(init_guess, alpha, q, file_path, test_data, start_line, pre_result):
+    test_data = read_data(init_guess, file_path, q, start_line, test_data, pre_result)
+    print(test_data)
+    c = make_tensor(q, test_data)
     S = tensor_svd(c, q) #Sは特異値ベクトルを格納するリスト
     H = 0.0
     for j in range(q-1):
