@@ -4,27 +4,45 @@ from scipy.optimize import minimize
 
 def main():
     q = 7
-    alpha = 0.25
-    init_guess = 0.1
+    alpha = 0.99
+    init_guess = -1
     file_path = "sin.txt"
-    outfile_path = "sin_out2.txt"
-    N = 500 #何個の点を予測するか
+    outfile_path = "sin_out3.txt"
+    N = 300 #何個の点を予測するか
     pre_result = 0
     test_data = [0]*(2**q)
     f = open(outfile_path, 'w')
     out_text = ""
+    ent_out_text = ""
+
     for i in range(N):
-        result = minimize(calc_entropy, init_guess, args = (alpha, q, file_path, test_data, i, pre_result))
+        result = minimize(calc_entropy, np.random.rand(), args = (alpha, q, file_path, test_data, i, pre_result), method = 'L-BFGS-B')
+
+        if i == 193:#エンタングルメントエントロピーの振る舞いを調べる
+            for k in range(100):
+                ent_out_text += str(calc_entropy([-1.0+0.02*k], alpha, q, file_path, test_data, i, pre_result)) + "\n"
+                # print("ent"+ent_out_text)
+
         print(result.x)
         print(result.success)
+        if result.success == False:
+            print("failed")
+            break
         print(result.message)
         print(result.fun)
         pre_result = result.x[0]
         for i in range(len(test_data)-1):
             test_data[i] = test_data[i+1]
         out_text += str(result.x[0]) + "\n"
+
     f.write(out_text)
-    f.close
+    f.close()
+
+
+    ent_f = open("ent_out.txt", 'w')
+    ent_f.write(ent_out_text)
+    ent_f.close()
+    
 
 def make_tensor(q, test_data):
     tensor_shape = []
@@ -53,12 +71,12 @@ def read_data(init_guess, file_path, q, start_line, test_data, pre_result):
         for i in range(start_line, min(2**q+start_line, len(lines))):
             test_data[i-start_line] = float(lines[i].strip())  # 行末の改行文字を取り除いてリストに追加
     test_data[-1] = init_guess[0]
-    # print(test_data)
+    print(test_data)
     return test_data
 
 def calc_entropy(init_guess, alpha, q, file_path, test_data, start_line, pre_result):
     test_data = read_data(init_guess, file_path, q, start_line, test_data, pre_result)
-    print(test_data)
+    # print(test_data)
     c = make_tensor(q, test_data)
     S = tensor_svd(c, q) #Sは特異値ベクトルを格納するリスト
     H = 0.0

@@ -2,12 +2,24 @@ import math
 
 def main():
     N = 1000
-    dt = 0.1
-    T = 10
+    dt = 0.3
+    T = 40
     square_wave(N, dt, T)
     sin_wave(N, dt)
-    triangle_wave(N, dt, T)
+    triangle_wave(N, 0.1, T)
+    sinsin_wave(N, dt)
+    linear_wave(N, dt)
     #print("a")
+
+def linear_wave(N, dt):
+    t = 0
+    f = open('linear.txt', 'w')
+    w_text = ""
+    for i in range(N):
+        w_text += str(0.2*t) + "\n"
+        t += dt
+    f.write(w_text)
+    f.close()
 
 def square_wave(N, dt, T):
     count = 0
@@ -31,16 +43,27 @@ def sin_wave(N, dt):
     f = open('sin.txt', 'w')
     w_text = ""
     for i in range(N):
-        w_text += str(math.sin(t)) + "\n"
+        w_text += str(0.8 * math.sin(t)) + "\n"
         t += dt
     f.write(w_text)
     f.close()
+
+def sinsin_wave(N, dt):
+    t = 0
+    f = open('sinsin.txt', 'w')
+    w_text = ""
+    for i in range(N):
+        w_text += str(0.8 * (math.sin(0.3*t)+math.sin(math.sqrt(0.3*t)))) + "\n"
+        t += dt
+    f.write(w_text)
+    f.close()
+
 
 def triangle_wave(N, dt, T):
     count = 0
     t = 0
     f = open('triangle.txt', 'w')
-    y = -0.2
+    y = -0.8
     dy = 0.04
     w_text = ""
     for i in range(int(N/T)):
