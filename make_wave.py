@@ -5,10 +5,10 @@ def main():
     dt = 0.3
     T = 40
     square_wave(N, dt, T)
-    sin_wave(N, dt)
-    triangle_wave(N, 0.1, T)
-    sinsin_wave(N, dt)
-    linear_wave(N, dt)
+    # sin_wave(N, dt)
+    # triangle_wave(N, 0.1, T)
+    # sinsin_wave(N, dt)
+    # linear_wave(N, dt)
     #print("a")
 
 def linear_wave(N, dt):
